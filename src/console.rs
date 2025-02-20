@@ -3,7 +3,7 @@ use std::process::exit;
 use std::io;
 use log::info;
 
-pub fn console() {
+pub fn get_cod_fisc_via_console() {
     let comuni = match carica_comuni("comuni.json") {
         Ok(data) => data,
         Err(e) => {

@@ -9,8 +9,9 @@ mod gui;
 
 fn main() {
     // enable logging, since log defaults to silent
-    //std::env::set_var("RUST_LOG", "info");
+    std::env::set_var("RUST_LOG", "info");
     env_logger::init();
+
     info!("Application starting...");
 
     let native_options = eframe::NativeOptions::default();
