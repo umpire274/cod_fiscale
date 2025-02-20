@@ -104,13 +104,17 @@ pub fn genera_codice_controllo(codice: &str) -> char {
 }
 
 /// Legge e verifica una data di nascita inserita dall'utente.
-pub fn leggi_e_controlla_data_nascita(prompt: &str) -> Option<(u32, u32, u32)> {
+pub fn leggi_e_controlla_data_nascita(prompt: &str, data_nascita: &str) -> Option<(u32, u32, u32)> {
     let mut input = String::new();
 
     loop {
-        println!("{}", prompt);
-        io::stdin().read_line(&mut input).unwrap();
-        input = input.trim().to_string();
+        if data_nascita.len() == 0 {
+            println!("{}", prompt);
+            io::stdin().read_line(&mut input).unwrap();
+            input = input.trim().to_string();
+        } else {
+            input = data_nascita.to_string();
+        }
 
         if let Some((giorno, mese, anno)) = valida_data(&input) {
             return Some((giorno, mese, anno));
@@ -163,3 +167,9 @@ pub fn trova_codice_comune(comuni: &[Comune], nome: &str, provincia: &str) -> Op
         }
     })
 }
+
+pub fn calcola_codice_fiscale(cognome: &str, nome: &str, codice_data_nascita: &str, codice_comune: &str, codice_controllo: char) -> String {
+    // Implementa la generazione del codice fiscale qui
+    format!("{}{}{}{}{}", cognome, nome, codice_data_nascita, codice_comune, codice_controllo)
+}
+
