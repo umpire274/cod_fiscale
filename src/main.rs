@@ -3,13 +3,13 @@ extern crate log;
 use std::process::exit;
 use std::io;
 use log::info;
-use crate::utils::{trova_codice_comune,carica_comuni,leggi_numero,genera_codice_nome,genera_codice_cognome,genera_codice_data_nascita,genera_codice_controllo};
+use crate::utils::{trova_codice_comune,carica_comuni,leggi_e_controlla_data_nascita,genera_codice_nome,genera_codice_cognome,genera_codice_data_nascita,genera_codice_controllo};
 
 mod utils;
 
 fn main() {
     // enable logging, since log defaults to silent
-    std::env::set_var("RUST_LOG", "info");
+    //std::env::set_var("RUST_LOG", "info");
     env_logger::init();
     info!("Application starting...");
 
@@ -33,15 +33,21 @@ fn main() {
     let cognome = input.trim().to_string();
     input.clear();
     
-    let anno = leggi_numero("Inserisci l'anno di nascita (YYYY):");
-    let mese = leggi_numero("Inserisci il mese di nascita (1-12):");
-    let giorno = leggi_numero("Inserisci il giorno di nascita:");
-    
     println!("Inserisci il sesso (M/F):");
     io::stdin().read_line(&mut input).unwrap();
     let sesso = input.trim().chars().next().unwrap();
     input.clear();
     
+    /*let anno = leggi_numero("Inserisci l'anno di nascita (YYYY):");
+    let mese = leggi_numero("Inserisci il mese di nascita (1-12):");
+    let giorno = leggi_numero("Inserisci il giorno di nascita:");*/
+    let mut codice_data = String::new();
+    if let Some((giorno, mese, anno)) = leggi_e_controlla_data_nascita("Inserisci la data di nascita (dd/mm/yyyy):") {
+        codice_data = genera_codice_data_nascita(anno, mese, giorno, sesso);
+    } else {
+        println!("Errore nella lettura della data.");
+    }
+
     println!("Inserisci il comune di nascita:");
     io::stdin().read_line(&mut input).unwrap();
     let nome_comune = input.trim().to_string();
@@ -52,11 +58,8 @@ fn main() {
 
     let codice_nome = genera_codice_nome(&nome);
     let codice_cognome = genera_codice_cognome(&cognome);
-    let codice_data = genera_codice_data_nascita(anno, mese, giorno, sesso);
-
 
     let mut codice_comune: Option<String> = None;
-
     // Trova il codice comune
     match trova_codice_comune(&comuni, &nome_comune, &provincia) {
         Some(codice) => {
@@ -88,7 +91,7 @@ fn main() {
 
     // Stampa il risultato finale
     info!("Carattere di controllo: {}", codice_controllo);
-    println!("\nCodice Fiscale: {}", codice_fiscale);
+    println!("\nCodice Fiscale: {}\n", codice_fiscale);
 
 
     info!("Application ended.");

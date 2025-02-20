@@ -4,6 +4,8 @@ use std::fs::File;
 use std::io::{BufReader, Error};
 use std::path::Path;
 use std::io;
+use chrono::NaiveDate;
+use chrono::Datelike;
 
 fn estrai_consonanti_vocali(s: &str) -> (String, String) {
     let mut consonanti = String::new();
@@ -56,19 +58,18 @@ pub fn genera_codice_cognome(cognome: &str) -> String {
     codice
 }
 
-fn codice_mese(mese: u32) -> char {
-    match mese {
-        1 => 'A', 2 => 'B', 3 => 'C', 4 => 'D', 5 => 'E', 6 => 'H',
-        7 => 'L', 8 => 'M', 9 => 'P', 10 => 'R', 11 => 'S', 12 => 'T',
-        _ => panic!("Mese non valido"),
-    }
-}
-
+/// Genera il codice della data di nascita per il codice fiscale.
 pub fn genera_codice_data_nascita(anno: u32, mese: u32, giorno: u32, sesso: char) -> String {
     let anno_codice = format!("{:02}", anno % 100);
     let mese_codice = codice_mese(mese);
     let giorno_codice = if sesso == 'F' { giorno + 40 } else { giorno };
     format!("{}{}{:02}", anno_codice, mese_codice, giorno_codice)
+}
+
+/// Converte il numero del mese nel codice per il codice fiscale.
+fn codice_mese(mese: u32) -> String {
+    let codici = ["A", "B", "C", "D", "E", "H", "L", "M", "P", "R", "S", "T"];
+    codici.get((mese - 1) as usize).unwrap_or(&"X").to_string()
 }
 
 pub fn genera_codice_controllo(codice: &str) -> char {
@@ -102,16 +103,38 @@ pub fn genera_codice_controllo(codice: &str) -> char {
     (b'A' + resto as u8) as char
 }
 
-pub fn leggi_numero(prompt: &str) -> u32 {
+/// Legge e verifica una data di nascita inserita dall'utente.
+pub fn leggi_e_controlla_data_nascita(prompt: &str) -> Option<(u32, u32, u32)> {
+    let mut input = String::new();
+
     loop {
-        let mut input = String::new();
         println!("{}", prompt);
         io::stdin().read_line(&mut input).unwrap();
-        match input.trim().parse::<u32>() {
-            Ok(numero) => return numero,
-            Err(_) => println!("Errore: inserisci un numero valido."),
+        input = input.trim().to_string();
+
+        if let Some((giorno, mese, anno)) = valida_data(&input) {
+            return Some((giorno, mese, anno));
+        } else {
+            println!("Data non valida. Inserisci una data nel formato dd/mm/yyyy.");
+            input.clear();
         }
     }
+}
+
+/// Verifica se una data nel formato `dd/mm/yyyy` è valida.
+fn valida_data(data: &str) -> Option<(u32, u32, u32)> {
+    let parts: Vec<&str> = data.split('/').collect();
+    if parts.len() != 3 {
+        return None;
+    }
+
+if let (Ok(giorno), Ok(mese), Ok(anno)) = (parts[0].parse::<u32>(), parts[1].parse::<u32>(), parts[2].parse::<i32>()) {
+        if let Some(date) = NaiveDate::from_ymd_opt(anno, mese, giorno) {
+            return Some((date.day(), date.month(), date.year() as u32));
+        }
+    }
+    
+    None
 }
 
 #[derive(Debug, Deserialize, Serialize)]
